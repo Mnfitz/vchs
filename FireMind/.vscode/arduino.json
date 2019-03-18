@@ -1,0 +1,6 @@
+{
+    "sketch": "Source\\FireMind.ino",
+    "board": "arduino:avr:megaADK",
+    "port": "COM3",
+    "output": "./Build"
+}

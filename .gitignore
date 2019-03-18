@@ -30,3 +30,14 @@
 *.exe
 *.out
 *.app
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+[Bb]uild/
+[Bb]in/
+[Oo]bj/
+.run-*
+[Ll]ib/
+Generated Files/
