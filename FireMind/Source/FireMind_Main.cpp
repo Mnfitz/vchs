@@ -2,6 +2,7 @@
 #include <Arduino.h>
 
 // FireMind
+#include "FireMind_GpsCoords.hpp"
 #include "FireMind_Recv.hpp"
 #include "FireMind_Calc.hpp"
 #include "FireMind_Aim.hpp"

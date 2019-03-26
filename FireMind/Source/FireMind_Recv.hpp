@@ -25,14 +25,19 @@ class Recv
 public:
     void Setup();
     void Loop();
+    bool GetCoords(GpsCoords& outGpsCoords);
     
 private:
     void Blink(byte PIN, int DELAY_MS);
+    float BuffToCoord(volatile uint8_t inBuff[7]);
 
 private:
     byte      mAckCount{0};
     uint32_t  mPacketCount{0};
     bool      mPromiscuousMode{false}; //set to 'true' to sniff all packets on the same network
+    GpsCoords mGpsCoords{};
+    bool      mIsCoordReady{false};
+
 #ifdef ENABLE_ATC
     RFM69_ATC mRadio{};
 #else
@@ -100,7 +105,7 @@ inline void Recv::Loop()
       Serial.print("Promiscuous mode ");Serial.println(mPromiscuousMode ? "on" : "off");
     }
     
-    if (input == 'd') //d=dump flash area
+    /*if (input == 'd') //d=dump flash area
     {
       Serial.println("Flash content:");
       int counter = 0;
@@ -135,6 +140,7 @@ inline void Recv::Loop()
       Serial.print(fTemp); //converting to F loses some resolution, obvious when C is on edge between 2 values (ie 26C=78F, 27C=80F)
       Serial.println('F');
     }
+    */
   }
 
   if (mRadio.receiveDone())
@@ -150,7 +156,13 @@ inline void Recv::Loop()
     for (byte i = 0; i < mRadio.DATALEN; i++)
     //for (byte i = 0; i < 50; i++)
       Serial.print((char)mRadio.DATA[i]);
-    Serial.print("   [RX_RSSI:");Serial.print(mRadio.RSSI);Serial.print("]");
+      
+      mGpsCoords.mLatitude = BuffToCoord(&mRadio.DATA[0]);
+      mGpsCoords.mLongitude = BuffToCoord(&mRadio.DATA[7]);
+      mGpsCoords.mAltitude = BuffToCoord(&mRadio.DATA[14]);
+      mIsCoordReady = true;
+
+    //Serial.print("   [RX_RSSI:");Serial.print(mRadio.RSSI);Serial.print("]");
     
     if (mRadio.ACKRequested())
     {
@@ -185,3 +197,44 @@ inline void Recv::Blink(byte PIN, int DELAY_MS)
   digitalWrite(PIN,LOW);
 }
 
+inline bool Recv::GetCoords(GpsCoords& outGpsCoords)
+{
+  if (mIsCoordReady)
+  {
+    outGpsCoords = mGpsCoords;
+    mIsCoordReady = false;
+    return (true);
+  }
+
+  return (false);
+}
+
+inline float Recv::BuffToCoord(volatile uint8_t inBuff[7])
+{
+  int index=0;
+  int mult=2;
+  float tempCoord=0.0;
+  char tempChar=0;
+  float returnCoord=0.0;
+
+  while(index<=6)
+  {
+    tempChar=inBuff[index];
+    
+    if(isdigit(tempChar))
+    {
+      tempCoord=tempChar;
+      mult=mult-index;
+      tempCoord=(tempCoord*(pow(10,mult)));
+      returnCoord=(returnCoord+tempCoord);
+    }
+
+    else
+    {
+      tempCoord=0.0;
+      returnCoord=(returnCoord+tempCoord);
+    }
+    index++;
+  } 
+  return returnCoord;
+}
