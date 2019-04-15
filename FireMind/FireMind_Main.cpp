@@ -1,5 +1,6 @@
 // Arduino
 #include <Arduino.h>
+#include <assert.h>
 
 // FireMind
 #include "FireMind_GpsCoords.hpp"
@@ -31,7 +32,7 @@ int main()
     for (;;)
     {
         recv.Loop();
-        calc.Loop();
+        calc.Loop(recv);
         aim.Loop();
     }
 #endif
