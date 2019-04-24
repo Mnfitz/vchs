@@ -1,54 +1,53 @@
 {
-    "configurations": [
-        {
-            "name": "Win32",
-            "includePath": [
-                "C:\\Users\\${env:USERNAME}\\Documents\\Arduino\\libraries\\RFM69_LowPowerLab",
-                "C:\\Users\\${env:USERNAME}\\Documents\\Arduino\\libraries\\SPIFlash_LowPowerLab",
-                "C:\\Program Files (x86)\\Arduino\\tools\\**",
-                "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\**",
-                "${workspaceFolder}/**"
-            ],
-            "defines": [
-                "_DEBUG",
-                "UNICODE",
-                "_UNICODE"
-            ],
-            "windowsSdkVersion": "10.0.17134.0",
-            "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.14.26428/bin/Hostx64/x64/cl.exe",
-            "cStandard": "c11",
-            "cppStandard": "c++17",
-            "intelliSenseMode": "msvc-x64",
-            "forcedInclude": [
-                "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino\\Arduino.h"
-            ]
-        },
-        {
-            "name": "Arduino",
-            "includePath": [
-                "C:\\Users\\${env:USERNAME}\\Documents\\Arduino\\libraries\\LowPower\\",
-                "C:\\Users\\${env:USERNAME}\\Documents\\Arduino\\libraries\\RFM69_LowPowerLab\\",
-                "C:\\Users\\${env:USERNAME}\\Documents\\Arduino\\libraries\\SPIFlash_LowPowerLab\\",
+	"configurations": [{
+			"name": "Win32",
+			"includePath": [
+				"${env:USERPROFILE}\\Documents\\Arduino\\libraries\\RFM69_LowPowerLab",
+				"${env:USERPROFILE}\\Documents\\Arduino\\libraries\\SPIFlash_LowPowerLab",
+				"C:\\Program Files (x86)\\Arduino\\tools\\**",
+				"C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\**",
+				"${workspaceFolder}/**"
+			],
+			"defines": [
+				"_DEBUG",
+				"UNICODE",
+				"_UNICODE"
+			],
+			"windowsSdkVersion": "10.0.17134.0",
+			"compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.14.26428/bin/Hostx64/x64/cl.exe",
+			"cStandard": "c11",
+			"cppStandard": "c++17",
+			"intelliSenseMode": "msvc-x64",
+			"forcedInclude": [
+				"C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino\\Arduino.h"
+			]
+		},
+		{
+			"name": "Arduino",
+			"includePath": [
+				"${env:USERPROFILE}\\Documents\\Arduino\\libraries\\LowPower",
+				"${env:USERPROFILE}\\Documents\\Arduino\\libraries\\RFM69_LowPowerLab",
+				"${env:USERPROFILE}\\Documents\\Arduino\\libraries\\SPIFlash_LowPowerLab",
 
-                "${config:arduino.path}\\hardware\\arduino\\avr\\cores\\arduino\\",
-                "${config:arduino.path}\\hardware\\arduino\\avr\\libraries\\EEPROM\\",
-                "${config:arduino.path}\\hardware\\arduino\\avr\\libraries\\HID\\",
-                "${config:arduino.path}\\hardware\\arduino\\avr\\libraries\\SPI\\",
-                "${config:arduino.path}\\hardware\\arduino\\avr\\libraries\\SoftwareSerial\\",
-                "${config:arduino.path}\\hardware\\arduino\\avr\\libraries\\Wire\\src\\",
-                "${config:arduino.path}\\hardware\\tools\\avr\\avr\\include\\",
-                "${config:arduino.path}\\hardware\\tools\\avr\\avr\\include\\avr\\",
-                "${config:arduino.path}\\hardware\\tools\\avr\\avr\\include\\compat\\",
-                "${config:arduino.path}\\hardware\\tools\\avr\\avr\\include\\util\\",
-                "${config:arduino.path}\\hardware\\tools\\avr\\lib\\gcc\\avr\\4.*.*\\include\\",
-                "${config:arduino.path}\\hardware\\tools\\avr\\lib\\gcc\\avr\\4.*.*\\include-fixed\\",
-                "${workspaceFolder}/**"
-            ],
-            "browse": {
-                "limitSymbolsToIncludedHeaders": true,
-                "databaseFilename": ""
-            }
-        }
+				"${config:arduino.path}\\hardware\\arduino\\avr\\cores\\arduino",
+				"${config:arduino.path}\\hardware\\arduino\\avr\\libraries\\EEPROM",
+				"${config:arduino.path}\\hardware\\arduino\\avr\\libraries\\HID",
+				"${config:arduino.path}\\hardware\\arduino\\avr\\libraries\\SPI",
+				"${config:arduino.path}\\hardware\\arduino\\avr\\libraries\\SoftwareSerial",
+				"${config:arduino.path}\\hardware\\arduino\\avr\\libraries\\Wire\\src",
+				"${config:arduino.path}\\hardware\\tools\\avr\\avr\\include",
+				"${config:arduino.path}\\hardware\\tools\\avr\\avr\\include\\avr",
+				"${config:arduino.path}\\hardware\\tools\\avr\\avr\\include\\compat",
+				"${config:arduino.path}\\hardware\\tools\\avr\\avr\\include\\util",
+				"${config:arduino.path}\\hardware\\tools\\avr\\lib\\gcc\\avr\\4.*.*\\include",
+				"${config:arduino.path}\\hardware\\tools\\avr\\lib\\gcc\\avr\\4.*.*\\include-fixed",
+				"${workspaceFolder}/**"
+			],
+			"browse": {
+				"limitSymbolsToIncludedHeaders": true,
+				"databaseFilename": ""
+			}
+		}
     ],
-    "version": 4
+	"version": 4
 }
