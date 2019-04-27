@@ -104,43 +104,6 @@ inline void Recv::Loop()
       mRadio.promiscuous(mPromiscuousMode);
       Serial.print("Promiscuous mode ");Serial.println(mPromiscuousMode ? "on" : "off");
     }
-    
-    /*if (input == 'd') //d=dump flash area
-    {
-      Serial.println("Flash content:");
-      int counter = 0;
-
-      while(counter<=256){
-        Serial.print(flash.readByte(counter++), HEX);
-        Serial.print('.');
-      }
-      while(flash.busy());
-      Serial.println();
-    }
-    if (input == 'D')
-    {
-      Serial.print("Deleting Flash chip ... ");
-      flash.chipErase();
-      while(flash.busy());
-      Serial.println("DONE");
-    }
-    if (input == 'i')
-    {
-      Serial.print("DeviceID: ");
-      word jedecid = flash.readDeviceId();
-      Serial.println(jedecid, HEX);
-    }
-    if (input == 't')
-    {
-      byte temperature =  mRadio.readTemperature(-1); // -1 = user cal factor, adjust for correct ambient
-      byte fTemp = 1.8 * temperature + 32; // 9/5=1.8
-      Serial.print( "Radio Temp is ");
-      Serial.print(temperature);
-      Serial.print("C, ");
-      Serial.print(fTemp); //converting to F loses some resolution, obvious when C is on edge between 2 values (ie 26C=78F, 27C=80F)
-      Serial.println('F');
-    }
-    */
   }
 
   if (mRadio.receiveDone())

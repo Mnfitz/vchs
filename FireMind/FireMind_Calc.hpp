@@ -7,8 +7,10 @@ public:
 	void Setup();
 	void Loop(Recv& inRecv);
 	bool GetBaseCoords(GpsCoords& outGpsCoords);
+	bool GetBearing(float& outHoriz, float& outVert);
 
-	float GetBearingHorizontal(const GpsCoords& inDegrees)
+	float GetBearingHorizontal(const GpsCoords& inDegrees);
+	float GetBearingVertical(const GpsCoords& inDegrees);
 
 private:
 	GpsCoords DegToRadCoords(const GpsCoords& inDegrees);
@@ -20,6 +22,9 @@ private:
 private:
 	GpsCoords mBaseCoords{};
 	float mCurrentBearing;
+	float mCurrentElevation;
+	bool mIsHorizReady;
+	bool mIsVertReady;
 
 };
 
@@ -35,35 +40,14 @@ inline void Calc::Setup()
 
 inline void Calc::Loop(Recv& inRecv)
 {
-
 	GpsCoords targetCoords{};
-	const bool getTarget = inRecv.GetCoords(targetCoords);
-	if (getTarget)
+	const bool didGetTarget = inRecv.GetCoords(targetCoords);
+	if (didGetTarget)
 	{
-		//x1 y1 is the same as |mBaseCoords|
-		//x2 y2 is the same as |targetCoords|
-		/*
-
-		float pi=3.14159265358979323846;
-		float d;
-		float r;
-		
-		float alt;
-		float az;
-		float el;
-		
-		float x1; 
-		float y1;
-
-		float x2; 
-		float y2;
-
-		d=r*acos(sin(y1)*sin(y2)+cos(y1)*cos(y2)*cos(x2-x1));
-
-		az= ((90-atan2(sin(x2-x1),cos(y1)*tan(y2)-sin(y1)*cos(x2-x1)))*(180/pi));
-
-		el=(atan2(alt,d)*(180/pi));
-		*/
+		mCurrentBearing = GetBearingHorizontal(targetCoords);
+		mCurrentElevation = GetBearingVertical(targetCoords);
+		mIsHorizReady = true;
+		mIsVertReady = true;
 	}
 
 }
@@ -110,9 +94,65 @@ inline GpsCoords Calc::RadToDegCoords(const GpsCoords& inRadians)
 	return MultCoords(inRadians, kToDegrees);
 }
 
-inline float GetBearingHorizontal(const GpsCoords& inDegrees)
+inline float Calc::GetBearingHorizontal(const GpsCoords& inDegrees)
 {
-	//!!!!!!!!!!!!!!!!!!!
-	//EMPTY FUNCTION BODY
-	//!!!!!!!!!!!!!!!!!!!
+	GpsCoords baseRadCoords = DegToRadCoords(mBaseCoords);
+	GpsCoords targetRadCoords = DegToRadCoords(inDegrees);
+	GpsCoords deltaCoords = SubCoords(baseRadCoords, targetRadCoords);
+
+	//Find a better naming convention pls
+	float tempTargetLat = tan(inDegrees.mLatitude / 2 + PI / 4);
+	float tempBaseLat = tan(baseRadCoords.mLatitude / 2 + PI / 4);
+	float deltaPhi = log(tempTargetLat / tempBaseLat);
+
+	if(abs(deltaCoords.mLongitude) > PI)
+	{
+		if((deltaCoords.mLongitude) > 0.0)
+		{	
+			deltaCoords.mLongitude = -(2 * PI - deltaCoords.mLongitude);
+		}
+		else
+		{
+			deltaCoords.mLongitude = (2 * PI - deltaCoords.mLongitude);
+		}
+	}
+
+	float targetBearing = ((RadToDegCoords(atan2(deltaCoords.mLongitude, deltaPhi)) + 360) % 360);
+	return (targetBearing - mCurrentBearing);
+}
+
+inline float Calc::GetBearingVertical(const GpsCoords& inDegrees)
+{
+	GpsCoords baseRadCoords = DegToRadCoords(mBaseCoords);
+	GpsCoords targetRadCoords = DegToRadCoords(inDegrees);
+	GpsCoords deltaCoords = SubCoords(baseRadCoords, targetRadCoords);
+
+	GpsCoords fromXDelta = MultCoords(baseRadCoords, deltaCoords);
+	GpsCoords fromXFrom = MultCoords(baseRadCoords, deltaCoords);
+	GpsCoords deltaXDelta = MultCoords(deltaCoords, deltaCoords);
+
+	//Find a better naming convention pls
+	float d =(fromXDelta.mLatitude + fromXDelta.mLongitude + fromXDelta.mAltitude);
+	float a =(fromXFrom.mLatitude + fromXFrom.mLongitude + fromXFrom.mAltitude);
+	float b =(deltaXDelta.mLatitude + deltaXDelta.mLongitude + deltaXDelta.mAltitude);
+
+	float elevation = RAD_TO_DEG (acos (d / sqrt ( a * b)));
+	elevation = elevation - 90;
+
+	return (elevation - mCurrentElevation);
+}
+
+inline bool Calc::GetBearing(float& outHoriz, float& outVert)
+{
+  if (mIsHorizReady && mIsVertReady)
+  {
+    outHoriz = mCurrentBearing;
+	outVert = mCurrentElevation;
+
+    mIsHorizReady = false;
+	mIsVertReady = false;
+    return (true);
+  }
+
+  return (false);
 }

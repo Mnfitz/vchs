@@ -13,7 +13,15 @@ inline void Aim::Setup()
     //code goes here
 }
 
-inline void Aim::Loop()
+inline void Aim::Loop(Calc& inCalc)
 {
-    //code goes here
+	float horiz{};
+	float vert{};
+	const bool didGet = inCalc.GetBearing(horiz, vert);
+	if (didGet)
+	{
+		printf("Horizontal Bearing: %f, Vertical Bearing: %f\n",horiz, vert);
+	}
+		
+    
 }
