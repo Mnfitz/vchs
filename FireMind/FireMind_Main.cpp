@@ -33,7 +33,7 @@ int main()
 	{
 		recv.Loop();
 		calc.Loop(recv);
-		aim.Loop();
+		aim.Loop(calc);
 		if (serialEventRun)
 		{
 			serialEventRun();
