@@ -28,6 +28,7 @@
 				"${env:USERPROFILE}\\Documents\\Arduino\\libraries\\LowPower",
 				"${env:USERPROFILE}\\Documents\\Arduino\\libraries\\RFM69_LowPowerLab",
 				"${env:USERPROFILE}\\Documents\\Arduino\\libraries\\SPIFlash_LowPowerLab",
+				"${env:USERPROFILE}\\Documents\\Arduino\\libraries\\Adafruit_GPS_Library",
 
 				"${config:arduino.path}\\hardware\\arduino\\avr\\cores\\arduino",
 				"${config:arduino.path}\\hardware\\arduino\\avr\\libraries\\EEPROM",

@@ -29,7 +29,7 @@ public:
     
 private:
     void Blink(byte PIN, int DELAY_MS);
-    float BuffToCoord(volatile uint8_t inBuff[7]);
+    float BuffToCoord(volatile uint8_t inBuff[8]);
 
 private:
     byte      mAckCount{0};
@@ -121,8 +121,8 @@ inline void Recv::Loop()
       Serial.print((char)mRadio.DATA[i]);
       
       mGpsCoords.mLatitude = BuffToCoord(&mRadio.DATA[0]);
-      mGpsCoords.mLongitude = BuffToCoord(&mRadio.DATA[7]);
-      mGpsCoords.mAltitude = BuffToCoord(&mRadio.DATA[14]);
+      mGpsCoords.mLongitude = BuffToCoord(&mRadio.DATA[8]);
+      mGpsCoords.mAltitude = BuffToCoord(&mRadio.DATA[16]);
       mIsCoordReady = true;
 
     //Serial.print("   [RX_RSSI:");Serial.print(mRadio.RSSI);Serial.print("]");
@@ -172,32 +172,32 @@ inline bool Recv::GetCoords(GpsCoords& outGpsCoords)
   return (false);
 }
 
-inline float Recv::BuffToCoord(volatile uint8_t inBuff[7])
+inline float Recv::BuffToCoord(volatile uint8_t inBuff[8])
 {
   int index=0;
   int mult=2;
   float tempCoord=0.0;
   char tempChar=0;
   float returnCoord=0.0;
+  float sign = 1.0;
 
-  while(index<=6)
+  while (index<=6)
   {
     tempChar=inBuff[index];
     
-    if(isdigit(tempChar))
+    if (isdigit(tempChar))
     {
       tempCoord=tempChar;
       mult=mult-index;
       tempCoord=(tempCoord*(pow(10,mult)));
       returnCoord=(returnCoord+tempCoord);
     }
-
-    else
+    else if (tempChar == '-')
     {
-      tempCoord=0.0;
-      returnCoord=(returnCoord+tempCoord);
+      sign = -1.00;
     }
+    
     index++;
   } 
-  return returnCoord;
+  return returnCoord * sign;
 }
