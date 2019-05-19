@@ -21,15 +21,15 @@ private:
 
 private:
   GpsCoords mBaseCoords{};
-  float mCurrentBearing;
-  float mCurrentElevation;
-  bool mIsHorizReady;
-  bool mIsVertReady;
-
+  float mCurrentBearing{};
+  float mCurrentElevation{};
+  bool mIsHorizReady{false};
+  bool mIsVertReady{false};
 };
 
 inline void Calc::Setup()
 { 
+  //Serial.println("Calc Setup");
   //Will get the location of the base to me
   const bool getBase = GetBaseCoords(mBaseCoords);
 
@@ -40,16 +40,26 @@ inline void Calc::Setup()
 
 inline void Calc::Loop(Recv& inRecv)
 {
+  //Serial.println("Calc Loop");
   GpsCoords targetCoords{};
   const bool didGetTarget = inRecv.GetCoords(targetCoords);
   if (didGetTarget)
   {
+    const bool isBaseValid = (mBaseCoords.mLatitude != 0
+                                && mBaseCoords.mLongitude != 0
+                                && mBaseCoords.mAltitude != 0);
+
+    if (!isBaseValid)
+    {
+      mBaseCoords = targetCoords;
+    }
     mCurrentBearing = GetBearingHorizontal(targetCoords);
     mCurrentElevation = GetBearingVertical(targetCoords);
     mIsHorizReady = true;
     mIsVertReady = true;
   }
-
+  
+  
 }
 
 inline bool Calc::GetBaseCoords(GpsCoords& outGpsCoords)
@@ -136,7 +146,14 @@ inline float Calc::GetBearingVertical(const GpsCoords& inDegrees)
   float a =(fromXFrom.mLatitude + fromXFrom.mLongitude + fromXFrom.mAltitude);
   float b =(deltaXDelta.mLatitude + deltaXDelta.mLongitude + deltaXDelta.mAltitude);
 
-  float elevation = RAD_TO_DEG * (acos (d / sqrt ( a * b)));
+  float divisor = sqrt(a * b);
+  if (abs(divisor) <= 0.0000001)
+  {
+    divisor = 0.0000001;
+  }
+  
+  float elevation = RAD_TO_DEG * (acos(d / divisor));
+  
   elevation = elevation - 90;
 
   return (elevation - mCurrentElevation);
@@ -147,12 +164,12 @@ inline bool Calc::GetBearing(float& outHoriz, float& outVert)
   if (mIsHorizReady && mIsVertReady)
   {
     outHoriz = mCurrentBearing;
-  outVert = mCurrentElevation;
-
+    outVert = mCurrentElevation;
+    
     mIsHorizReady = false;
-  mIsVertReady = false;
+    mIsVertReady = false;
     return (true);
   }
 
-  return (false);
+  return (false); 
 }

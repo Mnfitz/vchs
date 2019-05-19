@@ -40,15 +40,23 @@ Adafruit_GPS GPS(&Serial1); //Same here!
   RFM69 radio;
 #endif
 
+//TRICKY mnfitz 18may2019: Magic Compiler Setting "packed"
+
+//Use a non-standard compiler setting (__attribute__((packed))) 
+//to force the compiler to smoosh together the Payload member arrays
+//so that they appear contiguous in memory and don't have invisible
+//"byte padding." The RFM69 radio needs this because it transmits a
+//single contiguous buffer.
+
 typedef struct __attribute__((packed))
 {
-	char mTargetLat[8];
-	char mTargetLon[8];
-	char mTargetAlt[8];
+	char mTargetLat[12];
+	char mTargetLon[12];
+	char mTargetAlt[12];
 
 } Payload;
 Payload theData;
-static_assert(sizeof(Payload)==3*8, "Oops, payload isn't 24 bytes in size.");
+static_assert(sizeof(Payload)==3*12, "Oops, payload isn't 36 bytes in size.");
 
 long lastPeriod = -1;
 int TRANSMITPERIOD = 300; //transmit a packet to gateway so often (in ms)
@@ -64,9 +72,8 @@ public:
 
 private:
 	void Blink(byte PIN, int DELAY_MS);
-	void CoordtoBuff(float inCoord, char outBuff[8]);
+	void CoordtoBuff(float inCoord, char outBuff[12]);
 };
-
 
 
 inline void Target::Setup()  
@@ -81,6 +88,7 @@ inline void Target::Setup()
 #endif
 
 	Serial.begin(115200);
+  Serial.println("Firemind_Target Payload Version[float,float,float]");
 	Serial.println("Adafruit GPS library basic test!");
 
 	// 9600 NMEA is the default baud rate for Adafruit MTK GPS's- some use 4800
@@ -193,7 +201,8 @@ inline void Target::Loop()                     // run over and over again
     Serial.println(GPS.year, DEC);
     Serial.print("Fix: "); Serial.print((int)GPS.fix);
     Serial.print(" quality: "); Serial.println((int)GPS.fixquality); 
-    if (GPS.fix) {
+    if (GPS.fix) 
+    {
       Serial.print("Location: ");
       Serial.print(GPS.latitude, 4); Serial.print(GPS.lat);
       Serial.print(", "); 
@@ -212,6 +221,13 @@ inline void Target::Loop()                     // run over and over again
     CoordtoBuff(GPS.latitudeDegrees, theData.mTargetLat);
     CoordtoBuff(GPS.longitudeDegrees, theData.mTargetLon);
     CoordtoBuff(GPS.altitude, theData.mTargetAlt);
+    
+    Serial.print("GPS: ");
+    Serial.print(GPS.latitudeDegrees);
+    Serial.print(", ");
+    Serial.print(GPS.longitudeDegrees);
+    Serial.print(", ");
+    Serial.println(GPS.altitude);
   }
 }
 
@@ -223,9 +239,13 @@ inline void Target::Blink(byte PIN, int DELAY_MS)
   digitalWrite(PIN,LOW);
 }
 
-inline void Target::CoordtoBuff(float inCoord, char outBuff[8])
+inline void Target::CoordtoBuff(float inCoord, char outBuff[12])
 {
-  int index=0;
+#if 1
+  //Watch out! We store a 32 bit float type directly into outBuff.
+  *reinterpret_cast<float*>(&outBuff[0]) = inCoord;
+#else
+  int index=1;
   float mult = 100.0;
   float tempCoord=inCoord;
   float tempFloat = 0.0;
@@ -239,22 +259,19 @@ inline void Target::CoordtoBuff(float inCoord, char outBuff[8])
     tempCoord = -tempCoord;
   }
 
-  while(index<=6)
+  while(index < 12)
   {
 	tempFloat = tempCoord/mult;
 	tempInt = static_cast<int>(tempFloat);
   	itoa(tempInt,tempBuffer,10);
 	tempCoord = tempCoord - (tempInt*mult);
-	outBuff[index+1] = tempBuffer[0];
+	outBuff[index] = tempBuffer[0];
 
 	mult = mult/10.0;
     index++;
   } 
   outBuff[0] = sign;
-  outBuff[7] = '\0';
-  Serial.print(outBuff);
-  Serial.print(", "); 
-  Serial.println(inCoord);
+#endif
 }
 
 

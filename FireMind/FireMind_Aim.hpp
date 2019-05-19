@@ -20,10 +20,10 @@ inline void Aim::Loop(Calc& inCalc)
   const bool didGet = inCalc.GetBearing(horiz, vert);
   if (didGet)
   {
-    //Serial.print("Horizontal Bearing: ");
-    //Serial.print(horiz);
-    //Serial.print(", Vertical Bearing: ");
-    //Serial.println(vert);
+    Serial.print("Horizontal Bearing: ");
+    Serial.print(horiz);
+    Serial.print(", Vertical Bearing: ");
+    Serial.println(vert);
   }
     
     

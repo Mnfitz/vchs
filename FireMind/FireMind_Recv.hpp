@@ -29,7 +29,7 @@ public:
     
 private:
     void Blink(byte PIN, int DELAY_MS);
-    float BuffToCoord(volatile uint8_t inBuff[8]);
+    float BuffToCoord(volatile uint8_t inBuff[12]);
 
 private:
     byte      mAckCount{0};
@@ -88,7 +88,9 @@ inline void Recv::Setup()
 
 inline void Recv::Loop()
 {
+  //Serial.println("Recv Loop");
   //process any serial input
+#if 0
   if (Serial.available() > 0)
   {
     char input = Serial.read();
@@ -105,6 +107,7 @@ inline void Recv::Loop()
       Serial.print("Promiscuous mode ");Serial.println(mPromiscuousMode ? "on" : "off");
     }
   }
+#endif 
 
   if (mRadio.receiveDone())
   {
@@ -121,9 +124,26 @@ inline void Recv::Loop()
       Serial.print((char)mRadio.DATA[i]);
       
       mGpsCoords.mLatitude = BuffToCoord(&mRadio.DATA[0]);
-      mGpsCoords.mLongitude = BuffToCoord(&mRadio.DATA[8]);
-      mGpsCoords.mAltitude = BuffToCoord(&mRadio.DATA[16]);
-      mIsCoordReady = true;
+      mGpsCoords.mLongitude = BuffToCoord(&mRadio.DATA[12]);
+      mGpsCoords.mAltitude = BuffToCoord(&mRadio.DATA[24]);
+
+      Serial.println();
+      Serial.print("GPS Coords: ");
+      Serial.print(mGpsCoords.mLatitude);
+      Serial.print(", ");
+      Serial.print(mGpsCoords.mLongitude);
+      Serial.print(", ");
+      Serial.println(mGpsCoords.mAltitude);
+      
+      const bool isValidCoord = (mGpsCoords.mLatitude != 0
+                                && mGpsCoords.mLongitude != 0
+                                && mGpsCoords.mAltitude != 0);
+ 
+      if (isValidCoord)
+      {
+        mIsCoordReady = true;
+      }
+      
 
     //Serial.print("   [RX_RSSI:");Serial.print(mRadio.RSSI);Serial.print("]");
     
@@ -172,25 +192,28 @@ inline bool Recv::GetCoords(GpsCoords& outGpsCoords)
   return (false);
 }
 
-inline float Recv::BuffToCoord(volatile uint8_t inBuff[8])
+inline float Recv::BuffToCoord(volatile uint8_t inBuff[12])
 {
+#if 1
+  //Watch out! The character buffer holds a 4 byte float type
+  float result = *reinterpret_cast<volatile float*>(&inBuff[0]);
+  return result;
+#else
   int index=0;
-  int mult=2;
-  float tempCoord=0.0;
+  int tempCoord=0;
   char tempChar=0;
-  float returnCoord=0.0;
   float sign = 1.0;
 
-  while (index<=6)
+  while (index<12)
   {
     tempChar=inBuff[index];
     
     if (isdigit(tempChar))
     {
-      tempCoord=tempChar;
-      mult=mult-index;
-      tempCoord=(tempCoord*(pow(10,mult)));
-      returnCoord=(returnCoord+tempCoord);
+      tempChar -= '0'; //This line converts ASCII code digits into base 10 digits
+      tempCoord *= 10;
+      tempCoord += tempChar;
+      
     }
     else if (tempChar == '-')
     {
@@ -199,5 +222,7 @@ inline float Recv::BuffToCoord(volatile uint8_t inBuff[8])
     
     index++;
   } 
-  return returnCoord * sign;
+  tempCoord /= 100000000; //Assumes target data uses 12-1-3=8 digits of precision
+  return tempCoord * sign;
+#endif
 }
