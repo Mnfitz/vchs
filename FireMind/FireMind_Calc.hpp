@@ -17,9 +17,13 @@ private:
   GpsCoords RadToDegCoords(const GpsCoords& inRadians);
   GpsCoords MultCoords(const GpsCoords& inLhs, const GpsCoords& inRhs);
   GpsCoords SubCoords(const GpsCoords& inLhs, const GpsCoords& inRhs);
+  
+  GpsXYZ MultCoords(const GpsXYZ& inLhs, const GpsXYZ& inRhs);
+  GpsXYZ SubCoords(const GpsXYZ& inLhs, const GpsXYZ& inRhs);
+  float GetN(float inA, float inE, float inLatitude);
+  GpsXYZ GetXYZ(const GpsCoords& inGpsCoord);
 
-
-private:
+ private:
   GpsCoords mBaseCoords{};
   float mCurrentBearing{};
   float mCurrentElevation{};
@@ -58,8 +62,6 @@ inline void Calc::Loop(Recv& inRecv)
     mIsHorizReady = true;
     mIsVertReady = true;
   }
-  
-  
 }
 
 inline bool Calc::GetBaseCoords(GpsCoords& outGpsCoords)
@@ -88,6 +90,27 @@ inline GpsCoords Calc::SubCoords(const GpsCoords& inLhs, const GpsCoords& inRhs)
   return subCoords;
 }
 
+inline GpsXYZ Calc::MultCoords(const GpsXYZ& inLhs, const GpsXYZ& inRhs) 
+{
+  GpsXYZ multCoords{};
+  multCoords.mX = inLhs.mX * inRhs.mX; 
+  multCoords.mY = inLhs.mY * inRhs.mY;
+  multCoords.mZ = inLhs.mZ * inRhs.mZ;
+
+  return multCoords;
+}
+
+inline GpsXYZ Calc::SubCoords(const GpsXYZ& inLhs, const GpsXYZ& inRhs)
+{
+  GpsXYZ subCoords{};
+  subCoords.mX = inLhs.mX - inRhs.mX; 
+  subCoords.mY = inLhs.mY - inRhs.mY;
+  subCoords.mZ = inLhs.mZ - inRhs.mZ;
+
+  return subCoords;
+}
+
+
 inline GpsCoords Calc::DegToRadCoords(const GpsCoords& inDegrees) 
 {
   const float kPi = PI;
@@ -108,10 +131,10 @@ inline float Calc::GetBearingHorizontal(const GpsCoords& inDegrees)
 {
   GpsCoords baseRadCoords = DegToRadCoords(mBaseCoords);
   GpsCoords targetRadCoords = DegToRadCoords(inDegrees);
-  GpsCoords deltaCoords = SubCoords(baseRadCoords, targetRadCoords);
+  GpsCoords deltaCoords = SubCoords(targetRadCoords, baseRadCoords);
 
   //Find a better naming convention pls
-  float tempTargetLat = tan(inDegrees.mLatitude / 2 + PI / 4);
+  float tempTargetLat = tan(targetRadCoords.mLatitude / 2 + PI / 4);
   float tempBaseLat = tan(baseRadCoords.mLatitude / 2 + PI / 4);
   float deltaPhi = log(tempTargetLat / tempBaseLat);
 
@@ -128,23 +151,32 @@ inline float Calc::GetBearingHorizontal(const GpsCoords& inDegrees)
   }
 
   float targetBearing = fmod((RAD_TO_DEG * (atan2(deltaCoords.mLongitude, deltaPhi)) + 360.0), 360.0);
-  return (targetBearing - mCurrentBearing);
+  return (targetBearing /*- mCurrentBearing*/);
 }
 
 inline float Calc::GetBearingVertical(const GpsCoords& inDegrees)
 {
   GpsCoords baseRadCoords = DegToRadCoords(mBaseCoords);
   GpsCoords targetRadCoords = DegToRadCoords(inDegrees);
-  GpsCoords deltaCoords = SubCoords(baseRadCoords, targetRadCoords);
+  GpsCoords deltaCoords = SubCoords(targetRadCoords, baseRadCoords);
 
-  GpsCoords fromXDelta = MultCoords(baseRadCoords, deltaCoords);
-  GpsCoords fromXFrom = MultCoords(baseRadCoords, deltaCoords);
-  GpsCoords deltaXDelta = MultCoords(deltaCoords, deltaCoords);
+  //GpsCoords fromXDelta = MultCoords(baseRadCoords, deltaCoords);
+  //GpsCoords fromXFrom = MultCoords(baseRadCoords, deltaCoords);
+  //GpsCoords deltaXDelta = MultCoords(deltaCoords, deltaCoords);
 
+  GpsXYZ baseXYZ = GetXYZ(baseRadCoords);
+  GpsXYZ targetXYZ = GetXYZ(targetRadCoords);
+  
+  GpsXYZ deltaXYZ = SubCoords(targetXYZ, baseXYZ);
+  GpsXYZ baseDeltaXYZ = MultCoords(baseXYZ, deltaXYZ);
+  
+  baseXYZ = MultCoords(baseXYZ, baseXYZ);
+  deltaXYZ = MultCoords(deltaXYZ, deltaXYZ);
+  
   //Find a better naming convention pls
-  float d =(fromXDelta.mLatitude + fromXDelta.mLongitude + fromXDelta.mAltitude);
-  float a =(fromXFrom.mLatitude + fromXFrom.mLongitude + fromXFrom.mAltitude);
-  float b =(deltaXDelta.mLatitude + deltaXDelta.mLongitude + deltaXDelta.mAltitude);
+  float d =(baseDeltaXYZ.mX + baseDeltaXYZ.mY + baseDeltaXYZ.mZ);
+  float a =(baseXYZ.mX + baseXYZ.mY + baseXYZ.mZ);
+  float b =(deltaXYZ.mX + deltaXYZ.mY + deltaXYZ.mZ);
 
   float divisor = sqrt(a * b);
   if (abs(divisor) <= 0.0000001)
@@ -156,7 +188,7 @@ inline float Calc::GetBearingVertical(const GpsCoords& inDegrees)
   
   elevation = elevation - 90;
 
-  return (elevation - mCurrentElevation);
+  return (/*mCurrentElevation*/ -elevation);
 }
 
 inline bool Calc::GetBearing(float& outHoriz, float& outVert)
@@ -172,4 +204,35 @@ inline bool Calc::GetBearing(float& outHoriz, float& outVert)
   }
 
   return (false); 
+}
+
+inline float Calc::GetN(float inA, float inE, float inLatitude)
+{
+	float sinLatitude = sin(inLatitude);
+	float denom = sqrt(1 - inE * inE * sinLatitude * sinLatitude);
+	return inA/denom;	
+}
+
+inline GpsXYZ Calc::GetXYZ(const GpsCoords& inGpsCoord)
+{
+	float radius = 6378137;
+	float flatteningDenom = 298.257223563;
+	float flattening = 0.003352811;
+	float polarRadius = 6356752.312106893;
+
+	float asqr = (radius * radius);
+	float bsqr = polarRadius * polarRadius;
+	float e = sqrt((asqr-bsqr)/asqr);
+
+	float N = GetN(radius, e, inGpsCoord.mLatitude);
+	float ratio = bsqr / asqr;
+
+	float X = (N + inGpsCoord.mAltitude) * cos(inGpsCoord.mLatitude) * cos(inGpsCoord.mLongitude);
+	float Y = (N + inGpsCoord.mAltitude) * cos(inGpsCoord.mLatitude) * sin(inGpsCoord.mLongitude);
+	float Z = (ratio * N + inGpsCoord.mAltitude) * sin(inGpsCoord.mLatitude);
+
+	GpsXYZ returnXYZ{X,Y,Z};
+
+
+	return returnXYZ;
 }

@@ -85,11 +85,12 @@ inline void Recv::Setup()
   Serial.println("RFM69_ATC Enabled (Auto Transmission Control)");
 #endif
 }
-
+ 
 inline void Recv::Loop()
 {
   //Serial.println("Recv Loop");
   //process any serial input
+
 #if 0
   if (Serial.available() > 0)
   {
@@ -107,7 +108,7 @@ inline void Recv::Loop()
       Serial.print("Promiscuous mode ");Serial.println(mPromiscuousMode ? "on" : "off");
     }
   }
-#endif 
+#endif
 
   if (mRadio.receiveDone())
   {
@@ -121,12 +122,20 @@ inline void Recv::Loop()
     }
     for (byte i = 0; i < mRadio.DATALEN; i++)
     //for (byte i = 0; i < 50; i++)
-      Serial.print((char)mRadio.DATA[i]);
-      
+      //Serial.print((char)mRadio.DATA[i]);
+
       mGpsCoords.mLatitude = BuffToCoord(&mRadio.DATA[0]);
       mGpsCoords.mLongitude = BuffToCoord(&mRadio.DATA[12]);
       mGpsCoords.mAltitude = BuffToCoord(&mRadio.DATA[24]);
 
+      const bool isValidCoord = (mGpsCoords.mLatitude != 0
+                                && mGpsCoords.mLongitude != 0
+                                && mGpsCoords.mAltitude != 0);
+      if (isValidCoord)
+      {
+        mIsCoordReady = true;
+      }
+  
       Serial.println();
       Serial.print("GPS Coords: ");
       Serial.print(mGpsCoords.mLatitude);
@@ -134,17 +143,7 @@ inline void Recv::Loop()
       Serial.print(mGpsCoords.mLongitude);
       Serial.print(", ");
       Serial.println(mGpsCoords.mAltitude);
-      
-      const bool isValidCoord = (mGpsCoords.mLatitude != 0
-                                && mGpsCoords.mLongitude != 0
-                                && mGpsCoords.mAltitude != 0);
  
-      if (isValidCoord)
-      {
-        mIsCoordReady = true;
-      }
-      
-
     //Serial.print("   [RX_RSSI:");Serial.print(mRadio.RSSI);Serial.print("]");
     
     if (mRadio.ACKRequested())
