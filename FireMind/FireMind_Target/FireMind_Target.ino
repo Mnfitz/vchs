@@ -7,6 +7,7 @@
 #include <SoftwareSerial.h>
 #include <stdlib.h>
 
+//#define IS_RFM69HW_HCW  //uncomment only for RFM69HW/HCW! Leave out if you have RFM69W/CW!
 #define ENCRYPTKEY    "sampleEncryptKey" //exactly the same 16 characters/bytes on all nodes!
 #define FREQUENCY     RF69_433MHZ
 #define NODEID        1    //unique for each node on same network
