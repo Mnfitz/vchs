@@ -1,10 +1,10 @@
 # FireMind GPS Tracker
 FireMind is the brians of Project Phoenix, and requires two Motieno MEGAS and one Azimuth/Elevation motor to function correctly. 
-FireMind is a collection of programs designed to send, recieve, and process GPS coordinates and aim the motor mount, so that the mount can 
-track a moving target. It is important that all files EXCEPT FireMind_Target are on the base station Motieno MEGA, and that the base does
-not move. Currently, as we only have one GPS tracking device, we are unable to create a base station that is mobile and can track its own
-position, so it is important that the base is kept stationary. The target Motieno only requires FireMind_Target in order to work, and is
-supposed to be mobile. 
+FireMind is a collection of programs designed to send, recieve, and process GPS coordinates and aim the motor mount, so that the mount can track a moving target. Currently, as we only have one GPS tracking device, we are unable to create a base station that is mobile and can track its own position, so it is important that the base is kept stationary. The target Motieno only requires FireMind_Target in order to work, and is supposed to be mobile. It is important that all files EXCEPT FireMind_Target are on the base station Motieno MEGA, and that the base doesnot move.
+
+Example of a Moteinop MEGA:
+
+![alt text](https://github.com/Mnfitz/vchs/blob/master/FireMind/Assets/MoteinoMega.jpg "Moteino MEGA") 
 
 Short Overview of Each Program:
 1. FireMind_Recv: Takes in GPS coordinates sent from the target. Coordinates are sent via radio in floating point format. Note: Natural
